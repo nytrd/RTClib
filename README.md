@@ -1,10 +1,11 @@
-# RTClib, just for the DS3231
+# RTClib (DS3231 only)
 
 This is a fork of Adafruit's fork of JeeLab's real-time clock (RTC) library for Arduino.
-Slimmed down and functionally expanded specifically for the [DS3231 Precision RTC](https://www.adafruit.com/product/3013)
+Notably, it supports only one of the chips the Adafruit package has, and expands the functionality of the DS3231
 
-_DS3231 Data sheet_
-* [DS3231](https://cdn-shop.adafruit.com/product-files/3013/DS3231.pdf)
+_DS3231 Extremely accurate clock_
+* [DS3231 datasheet](https://cdn-shop.adafruit.com/product-files/3013/DS3231.pdf)
+* [Adafruit product](https://www.adafruit.com/product/3013)) (also comes as a Feather Wing)
 
 An extremely precise clock that, at the most granular resolution, exposes seconds.
 But offers two ways to know the *exact* time
