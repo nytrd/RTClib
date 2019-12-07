@@ -4,16 +4,8 @@
 
   Original library by JeeLabs http://news.jeelabs.org/code/, released to the public domain
 
-  License: MIT (see LICENSE)
-
-  This is a fork of JeeLab's fantastic real time clock library for Arduino.
-
-  For details on using this library with an RTC module like the DS1307, PCF8523, or DS3231,
-  see the guide at: https://learn.adafruit.com/ds1307-real-time-clock-breakout-board-kit/overview
-
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
+  Forked by Jimmy Chion for slimmed down code to work specifically with DS3231,
+  and to add support for alarm creation and detection.
 */
 /**************************************************************************/
 
@@ -24,15 +16,6 @@
 class TimeSpan;
 
 /** Registers */
-#define PCF8523_ADDRESS       0x68  ///< I2C address for PCF8523
-#define PCF8523_CLKOUTCONTROL 0x0F  ///< Timer and CLKOUT control register
-#define PCF8523_CONTROL_3     0x02  ///< Control and status register 3
-#define PCF8523_OFFSET        0x0E  ///< Offset register
-
-#define DS1307_ADDRESS        0x68  ///< I2C address for DS1307
-#define DS1307_CONTROL        0x07  ///< Control register
-#define DS1307_NVRAM          0x08  ///< Start of RAM registers - 56 bytes, 0x08 to 0x3f
-
 #define DS3231_ADDRESS        0x68  ///< I2C address for DS3231
 #define DS3231_CONTROL        0x0E  ///< Control register
 #define DS3231_STATUSREG      0x0F  ///< Status register
@@ -197,39 +180,6 @@ protected:
   int32_t _seconds;   ///< Actual TimeSpan value is stored as seconds
 };
 
-
-
-/** DS1307 SQW pin mode settings */
-enum Ds1307SqwPinMode {
-  DS1307_OFF              = 0x00, // Low
-  DS1307_ON               = 0x80, // High
-  DS1307_SquareWave1HZ    = 0x10, // 1Hz square wave
-  DS1307_SquareWave4kHz   = 0x11, // 4kHz square wave
-  DS1307_SquareWave8kHz   = 0x12, // 8kHz square wave
-  DS1307_SquareWave32kHz  = 0x13  // 32kHz square wave
-};
-
-/**************************************************************************/
-/*!
-    @brief  RTC based on the DS1307 chip connected via I2C and the Wire library
-*/
-/**************************************************************************/
-class RTC_DS1307 {
-public:
-  boolean begin(void);
-  static void adjust(const DateTime& dt);
-  uint8_t isrunning(void);
-  static DateTime now();
-  static Ds1307SqwPinMode readSqwPinMode();
-  static void writeSqwPinMode(Ds1307SqwPinMode mode);
-  uint8_t readnvram(uint8_t address);
-  void readnvram(uint8_t* buf, uint8_t size, uint8_t address);
-  void writenvram(uint8_t address, uint8_t data);
-  void writenvram(uint8_t address, uint8_t* buf, uint8_t size);
-};
-
-
-
 /** DS3231 SQW pin mode settings */
 enum Ds3231SqwPinMode {
   DS3231_OFF            = 0x01, // Off
@@ -257,89 +207,5 @@ public:
 
 
 
-/** PCF8523 SQW pin mode settings */
-enum Pcf8523SqwPinMode {
-  PCF8523_OFF             = 7, // Off
-  PCF8523_SquareWave1HZ   = 6, // 1Hz square wave
-  PCF8523_SquareWave32HZ  = 5, // 32Hz square wave
-  PCF8523_SquareWave1kHz  = 4, // 1kHz square wave
-  PCF8523_SquareWave4kHz  = 3, // 4kHz square wave
-  PCF8523_SquareWave8kHz  = 2, // 8kHz square wave
-  PCF8523_SquareWave16kHz = 1, // 16kHz square wave
-  PCF8523_SquareWave32kHz = 0  // 32kHz square wave
-};
-
-/** PCF8523 Offset modes for making temperature/aging/accuracy adjustments */
-enum Pcf8523OffsetMode {
-  PCF8523_TwoHours = 0x00,  // Offset made every two hours
-  PCF8523_OneMinute = 0x80  // Offset made every minute
-};
-
-/**************************************************************************/
-/*!
-    @brief  RTC based on the PCF8523 chip connected via I2C and the Wire library
-*/
-/**************************************************************************/
-class RTC_PCF8523 {
-public:
-  boolean begin(void);
-  void adjust(const DateTime& dt);
-  boolean initialized(void);
-  static DateTime now();
-
-  Pcf8523SqwPinMode readSqwPinMode();
-  void writeSqwPinMode(Pcf8523SqwPinMode mode);
-  void calibrate(Pcf8523OffsetMode mode, int8_t offset);
-};
-
-
-/**************************************************************************/
-/*!
-    @brief  RTC using the internal millis() clock, has to be initialized before use.
-            NOTE: this is immune to millis() rollover events.
-*/
-/**************************************************************************/
-class RTC_Millis {
-public:
-  /*!
-      @brief  Start the RTC
-      @param dt DateTime object with the date/time to set
-  */
-  static void begin(const DateTime& dt) { adjust(dt); }
-  static void adjust(const DateTime& dt);
-  static DateTime now();
-
-protected:
-  static uint32_t lastUnix;   ///< Unix time from the previous call to now() - prevents rollover issues
-  static uint32_t lastMillis; ///< the millis() value corresponding to the last **full second** of Unix time
-};
-
-
-
-/**************************************************************************/
-/*!
-    @brief  RTC using the internal micros() clock, has to be initialized before
-            use. Unlike RTC_Millis, this can be tuned in order to compensate for
-            the natural drift of the system clock. Note that now() has to be
-            called more frequently than the micros() rollover period, which is
-            approximately 71.6 minutes.
-*/
-/**************************************************************************/
-class RTC_Micros {
-public:
-  /*!
-      @brief  Start the RTC
-      @param dt DateTime object with the date/time to set
-  */
-  static void begin(const DateTime& dt) { adjust(dt); }
-  static void adjust(const DateTime& dt);
-  static void adjustDrift(int ppm);
-  static DateTime now();
-
-protected:
-  static uint32_t microsPerSecond;  ///< Number of microseconds reported by micros() per "true" (calibrated) second
-  static uint32_t lastUnix;         ///< Unix time from the previous call to now() - prevents rollover issues
-  static uint32_t lastMicros;       ///< micros() value corresponding to the last full second of Unix time
-};
 
 #endif // _RTCLIB_H_
