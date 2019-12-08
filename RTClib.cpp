@@ -592,8 +592,8 @@ void RTC_DS3231::adjust(const DateTime& dt) {
   Wire._I2C_WRITE(bin2bcd(dt.second()));
   Wire._I2C_WRITE(bin2bcd(dt.minute()));
   Wire._I2C_WRITE(bin2bcd(dt.hour()));
-  Wire._I2C_WRITE(bin2bcd(0));
-  Wire._I2C_WRITE(bin2bcd(dt.day()));
+  Wire._I2C_WRITE(bin2bcd(0)); //-- skip "day" (1-7)
+  Wire._I2C_WRITE(bin2bcd(dt.day())); //-- aka "date" (1-31) in RTC
   Wire._I2C_WRITE(bin2bcd(dt.month()));
   Wire._I2C_WRITE(bin2bcd(dt.year() - 2000));
   Wire.endTransmission();
@@ -804,5 +804,23 @@ void RTC_DS3231::setModeAlarm1(Ds3231Alarm1Mode mode) {
   }
 }
 
+/**************************************************************************/
+/*!
+    @brief Sets the time into the registers of the DS3231. If the proper
+    bits are enabled, then, when the time matches these registers, the alarm goes off.
+*/
+/**************************************************************************/
+void RTC_DS3231::setTimeAlarm1(const DateTime& dt) {
+  Wire.beginTransmission(DS3231_ADDRESS);
+  Wire._I2C_WRITE((byte)DS3231_ALARM1SEC); // start at location 0x07
+  Wire._I2C_WRITE(bin2bcd(dt.second()));
+  Wire._I2C_WRITE(bin2bcd(dt.minute()));
+  Wire._I2C_WRITE(bin2bcd(dt.hour()));
+  Wire._I2C_WRITE(bin2bcd(0)); //-- skip "day" (1-7)
+  Wire._I2C_WRITE(bin2bcd(dt.day())); //-- aka "date" (1-31) in RTC
+  Wire._I2C_WRITE(bin2bcd(dt.month()));
+  Wire._I2C_WRITE(bin2bcd(dt.year() - 2000));
+  Wire.endTransmission();
+}
 
 
