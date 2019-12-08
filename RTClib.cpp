@@ -656,14 +656,14 @@ void RTC_DS3231::writeSqwPinMode(Ds3231SqwPinMode mode) {
   uint8_t ctrl;
   ctrl = read_i2c_register(DS3231_ADDRESS, DS3231_CONTROL);
 
-  ctrl &= ~0x04; // turn off INTCN
-  ctrl &= ~0x18; // set freq bits to 0
-
-  if (mode == DS3231_OFF) {
+  if (mode == DS3231_Interrupt) {
     ctrl |= 0x04; // turn on INTCN
   } else {
+    ctrl &= ~0x04; // turn off INTCN
+    ctrl &= ~0x18; // set freq bits to 0
     ctrl |= mode;
   }
+
   write_i2c_register(DS3231_ADDRESS, DS3231_CONTROL, ctrl);
 
 }
@@ -687,3 +687,110 @@ float RTC_DS3231::getTemperature()
 
   return (float) msb + (lsb >> 6) * 0.25f;
 }
+
+/**************************************************************************/
+/*!
+    @brief Enable Alarm1 on the DS3231 by setting A1IE bit on the control register
+    
+*/
+/**************************************************************************/
+void RTC_DS3231::enableAlarm1() {
+  uint8_t ctrl;
+  ctrl = read_i2c_register(DS3231_ADDRESS, DS3231_CONTROL);
+  ctrl |= 0x01;
+  write_i2c_register(DS3231_ADDRESS, DS3231_CONTROL, ctrl);
+}
+
+
+
+/**************************************************************************/
+/*!
+    @brief Clear the flag for Alarm1 on the DS3231 by zeroing A1F bit on the status register
+    This will stop the SQW/INT pin from asserting the alarm
+    
+*/
+/**************************************************************************/
+void RTC_DS3231::clearAlarm1() {
+  uint8_t status;
+  status = read_i2c_register(DS3231_ADDRESS, DS3231_STATUSREG);
+  status &= ~0x01; // zero the lsb
+  write_i2c_register(DS3231_ADDRESS, DS3231_STATUSREG, status);
+}
+
+
+static void setMSB(uint8_t reg, bool high) {
+  uint8_t b;
+  b = read_i2c_register(DS3231_ADDRESS, reg);
+  if( high ) {
+    b |= 0x80;
+  } else {
+    b &= ~0x80;
+  }
+  write_i2c_register(DS3231_ADDRESS, reg, b);
+}
+
+
+
+/**************************************************************************/
+/*!
+    @brief Per the data sheet, to set the alarm mode, we need to 
+    set the mask bits (bit 7) on registers 0x07-0x0A to determine
+    what time registers need to match for the alarm to go off
+*/
+/**************************************************************************/
+void RTC_DS3231::setModeAlarm1(Ds3231Alarm1Mode mode) {
+  uint8_t b;
+
+  switch(mode) {
+    case DS3231_OncePerSec:
+      setMSB(DS3231_ALARM1DAYDATE, true); //A1M4
+      setMSB(DS3231_ALARM1HOUR, true); // A1M3
+      setMSB(DS3231_ALARM1MIN, true); //A1M2
+      setMSB(DS3231_ALARM1SEC, true); //A1M1
+    break;
+
+    case DS3231_MatchSec:
+      setMSB(DS3231_ALARM1DAYDATE, true); //A1M4
+      setMSB(DS3231_ALARM1HOUR, true); // A1M3
+      setMSB(DS3231_ALARM1MIN, true); //A1M2
+      setMSB(DS3231_ALARM1SEC, false); //A1M1
+    break;
+
+    case DS3231_MatchMinSec:
+      setMSB(DS3231_ALARM1DAYDATE, true); //A1M4
+      setMSB(DS3231_ALARM1HOUR, true); // A1M3
+      setMSB(DS3231_ALARM1MIN, false); //A1M2
+      setMSB(DS3231_ALARM1SEC, false); //A1M1
+    break;
+
+    case DS3231_MatchHourMinSec:
+      setMSB(DS3231_ALARM1DAYDATE, true); //A1M4
+      setMSB(DS3231_ALARM1HOUR, false); // A1M3
+      setMSB(DS3231_ALARM1MIN, false); //A1M2
+      setMSB(DS3231_ALARM1SEC, false); //A1M1
+    break;
+
+    case DS3231_MatchDateHourMinSec:
+      setMSB(DS3231_ALARM1DAYDATE, false); //A1M4
+      setMSB(DS3231_ALARM1HOUR, false); // A1M3
+      setMSB(DS3231_ALARM1MIN, false); //A1M2
+      setMSB(DS3231_ALARM1SEC, false); //A1M1
+      b = read_i2c_register(DS3231_ADDRESS, DS3231_ALARM1DAYDATE);
+      b &= ~0x40; //-- zero the DY/DT bit
+      write_i2c_register(DS3231_ADDRESS, DS3231_ALARM1DAYDATE, b);
+    break;
+
+    case DS3231_MatchDayHourMinSec:
+      setMSB(DS3231_ALARM1DAYDATE, false); //A1M4
+      setMSB(DS3231_ALARM1HOUR, false); // A1M3
+      setMSB(DS3231_ALARM1MIN, false); //A1M2
+      setMSB(DS3231_ALARM1SEC, false); //A1M1
+      b = read_i2c_register(DS3231_ADDRESS, DS3231_ALARM1DAYDATE);
+      b |= 0x40; //-- turn on the DY/DT bit
+      write_i2c_register(DS3231_ADDRESS, DS3231_ALARM1DAYDATE, b);
+    break;
+  }
+}
+
+
+

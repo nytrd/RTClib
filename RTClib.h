@@ -20,6 +20,12 @@ class TimeSpan;
 #define DS3231_CONTROL        0x0E  ///< Control register
 #define DS3231_STATUSREG      0x0F  ///< Status register
 #define DS3231_TEMPERATUREREG	0x11  ///< Temperature register (high byte - low byte is at 0x12), 10-bit temperature value
+//-- additions
+#define DS3231_ALARM1ENABLE     0x01
+#define DS3231_ALARM1SEC        0x07
+#define DS3231_ALARM1MIN        0x08
+#define DS3231_ALARM1HOUR       0x09
+#define DS3231_ALARM1DAYDATE    0x0A
 
 /** Constants */
 #define SECONDS_PER_DAY       86400L  ///< 60 * 60 * 24
@@ -182,11 +188,20 @@ protected:
 
 /** DS3231 SQW pin mode settings */
 enum Ds3231SqwPinMode {
-  DS3231_OFF            = 0x01, // Off
+  DS3231_Interrupt      = 0x01, // No square wave. Instead, enables the pin to assert the alarm interrupt
   DS3231_SquareWave1Hz  = 0x00, // 1Hz square wave
   DS3231_SquareWave1kHz = 0x08, // 1kHz square wave
   DS3231_SquareWave4kHz = 0x10, // 4kHz square wave
   DS3231_SquareWave8kHz = 0x18  // 8kHz square wave
+};
+
+enum Ds3231Alarm1Mode {
+  DS3231_OncePerSec             = 1, // Alarm once per second
+  DS3231_MatchSec               = 2, // Alarm when seconds match
+  DS3231_MatchMinSec            = 3, // Alarm when minutes, sec match
+  DS3231_MatchHourMinSec        = 4, // Alarm when hour, min, sec, match
+  DS3231_MatchDateHourMinSec    = 5, // Alarm when date, hr, min, sec match
+  DS3231_MatchDayHourMinSec     = 6, // Alarm when day, hr, min, sec match
 };
 
 /**************************************************************************/
@@ -203,6 +218,11 @@ public:
   static Ds3231SqwPinMode readSqwPinMode();
   static void writeSqwPinMode(Ds3231SqwPinMode mode);
   static float getTemperature();  // in Celcius degree
+  //-- Additions on top of Adafruit's lib
+  static void clearAlarm1();
+  static void enableAlarm1();
+  static void setTimeAlarm1();
+  static void setModeAlarm1(Ds3231Alarm1Mode mode);
 };
 
 
