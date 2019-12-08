@@ -701,6 +701,18 @@ void RTC_DS3231::enableAlarm1() {
   write_i2c_register(DS3231_ADDRESS, DS3231_CONTROL, ctrl);
 }
 
+/**************************************************************************/
+/*!
+    @brief Disables Alarm1 on the DS3231 by zeroing the A1IE bit on Register 0x0E    
+*/
+/**************************************************************************/
+void RTC_DS3231::disableAlarm1() {
+  uint8_t ctrl;
+  ctrl = read_i2c_register(DS3231_ADDRESS, DS3231_CONTROL);
+  ctrl &= ~0x01;
+  write_i2c_register(DS3231_ADDRESS, DS3231_CONTROL, ctrl);
+}
+
 
 
 /**************************************************************************/
@@ -713,7 +725,7 @@ void RTC_DS3231::enableAlarm1() {
 void RTC_DS3231::clearAlarm1() {
   uint8_t status;
   status = read_i2c_register(DS3231_ADDRESS, DS3231_STATUSREG);
-  status &= ~0x01; // zero the lsb
+  status &= ~0x01; // zero the lsb, if possible
   write_i2c_register(DS3231_ADDRESS, DS3231_STATUSREG, status);
 }
 

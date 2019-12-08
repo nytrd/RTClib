@@ -196,12 +196,12 @@ enum Ds3231SqwPinMode {
 };
 
 enum Ds3231Alarm1Mode {
-  DS3231_OncePerSec             = 1, // Alarm once per second
-  DS3231_MatchSec               = 2, // Alarm when seconds match
-  DS3231_MatchMinSec            = 3, // Alarm when minutes, sec match
-  DS3231_MatchHourMinSec        = 4, // Alarm when hour, min, sec, match
-  DS3231_MatchDateHourMinSec    = 5, // Alarm when date, hr, min, sec match
-  DS3231_MatchDayHourMinSec     = 6, // Alarm when day, hr, min, sec match
+  DS3231_OncePerSec,            // Alarm once per second
+  DS3231_MatchSec,              // Alarm when seconds match
+  DS3231_MatchMinSec,           // Alarm when minutes, sec match
+  DS3231_MatchHourMinSec,       // Alarm when hour, min, sec, match
+  DS3231_MatchDateHourMinSec,   // Alarm when date, hr, min, sec match
+  DS3231_MatchDayHourMinSec     // Alarm when day, hr, min, sec match
 };
 
 /**************************************************************************/
@@ -219,9 +219,10 @@ public:
   static void writeSqwPinMode(Ds3231SqwPinMode mode);
   static float getTemperature();  // in Celcius degree
   //-- Additions on top of Adafruit's lib
-  static void clearAlarm1();
   static void enableAlarm1();
-  static void setTimeAlarm1();
+  static void disableAlarm1();
+  static void clearAlarm1();
+  static void setTimeAlarm1(const DateTime& dt);
   static void setModeAlarm1(Ds3231Alarm1Mode mode);
 };
 
