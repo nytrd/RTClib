@@ -801,6 +801,9 @@ void RTC_DS3231::setModeAlarm1(Ds3231Alarm1Mode mode) {
       b |= 0x40; //-- turn on the DY/DT bit
       write_i2c_register(DS3231_ADDRESS, DS3231_ALARM1DAYDATE, b);
     break;
+
+    default:
+    break;
   }
 }
 
