@@ -21,7 +21,6 @@ class TimeSpan;
 #define DS3231_STATUSREG      0x0F  ///< Status register
 #define DS3231_TEMPERATUREREG	0x11  ///< Temperature register (high byte - low byte is at 0x12), 10-bit temperature value
 //-- additions
-#define DS3231_ALARM1ENABLE     0x01
 #define DS3231_ALARM1SEC        0x07
 #define DS3231_ALARM1MIN        0x08
 #define DS3231_ALARM1HOUR       0x09
@@ -188,7 +187,7 @@ protected:
 
 /** DS3231 SQW pin mode settings */
 enum Ds3231SqwPinMode {
-  DS3231_Interrupt      = 0x01, // No square wave. Instead, enables the pin to assert the alarm interrupt
+  DS3231_Interrupt      = 0x04, // No square wave. Instead, enables the pin to assert the alarm interrupt
   DS3231_SquareWave1Hz  = 0x00, // 1Hz square wave
   DS3231_SquareWave1kHz = 0x08, // 1kHz square wave
   DS3231_SquareWave4kHz = 0x10, // 4kHz square wave
@@ -224,6 +223,7 @@ public:
   static void clearAlarm1();
   static void setTimeAlarm1(const DateTime& dt);
   static void setModeAlarm1(Ds3231Alarm1Mode mode);
+  static uint8_t getRegister(uint8_t reg);
 };
 
 

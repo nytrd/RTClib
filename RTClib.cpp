@@ -656,13 +656,11 @@ void RTC_DS3231::writeSqwPinMode(Ds3231SqwPinMode mode) {
   uint8_t ctrl;
   ctrl = read_i2c_register(DS3231_ADDRESS, DS3231_CONTROL);
 
-  if (mode == DS3231_Interrupt) {
-    ctrl |= 0x04; // turn on INTCN
-  } else {
+  if (mode != DS3231_Interrupt) {
     ctrl &= ~0x04; // turn off INTCN
-    ctrl &= ~0x18; // set freq bits to 0
-    ctrl |= mode;
   }
+  ctrl &= ~0x18; // set freq bits to 0
+  ctrl |= mode;
 
   write_i2c_register(DS3231_ADDRESS, DS3231_CONTROL, ctrl);
 
@@ -699,6 +697,7 @@ void RTC_DS3231::enableAlarm1() {
   ctrl = read_i2c_register(DS3231_ADDRESS, DS3231_CONTROL);
   ctrl |= 0x01;
   write_i2c_register(DS3231_ADDRESS, DS3231_CONTROL, ctrl);
+  ctrl = read_i2c_register(DS3231_ADDRESS, DS3231_CONTROL);
 }
 
 /**************************************************************************/
@@ -819,11 +818,16 @@ void RTC_DS3231::setTimeAlarm1(const DateTime& dt) {
   Wire._I2C_WRITE(bin2bcd(dt.second()));
   Wire._I2C_WRITE(bin2bcd(dt.minute()));
   Wire._I2C_WRITE(bin2bcd(dt.hour()));
-  Wire._I2C_WRITE(bin2bcd(0)); //-- skip "day" (1-7)
   Wire._I2C_WRITE(bin2bcd(dt.day())); //-- aka "date" (1-31) in RTC
   Wire._I2C_WRITE(bin2bcd(dt.month()));
   Wire._I2C_WRITE(bin2bcd(dt.year() - 2000));
   Wire.endTransmission();
+}
+
+uint8_t RTC_DS3231::getRegister(uint8_t reg) {
+  uint8_t b;
+  b = read_i2c_register(DS3231_ADDRESS, reg);
+  return b;
 }
 
 
